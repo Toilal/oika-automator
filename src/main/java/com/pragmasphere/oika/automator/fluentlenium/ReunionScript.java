@@ -89,7 +89,16 @@ public class ReunionScript extends FluentScript {
         final Map<String, FicheClient> clients = new LinkedHashMap<>();
         for (final String codeClient : codeClients) {
             client.goToClient(codeClient);
-            if (getDriver().getCurrentUrl().endsWith("Client.php5?REF=" + codeClient)) {
+            String currentUrl;
+            try {
+                currentUrl = getDriver().getCurrentUrl();
+            } catch (UnhandledAlertException | NullPointerException e) {
+                // Workaround à cause d'un bug du site oikaoika qui provoque une alerte.
+                alert().dismiss();
+                currentUrl = getDriver().getCurrentUrl();
+            }
+
+            if (currentUrl.endsWith("Client.php5?REF=" + codeClient)) {
                 FicheClient ficheClient;
                 try {
                     ficheClient = client.getFicheClient();
