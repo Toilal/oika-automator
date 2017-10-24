@@ -3,6 +3,7 @@ package com.pragmasphere.oika.automator.fluentlenium.po;
 import com.pragmasphere.oika.automator.fluentlenium.data.Regroupement;
 import org.fluentlenium.core.annotation.Page;
 import org.fluentlenium.core.annotation.PageUrl;
+import org.fluentlenium.core.domain.FluentList;
 import org.fluentlenium.core.domain.FluentWebElement;
 import org.openqa.selenium.support.FindBy;
 
@@ -32,18 +33,20 @@ public class ListeReunionsPage extends OikaFluentPage {
         nomHote.write(nom);
         submit.click();
 
-        List<FluentWebElement> links = $("#TableListeReunions a", with("href").startsWith("Reunion.php5"));
+        FluentList<FluentWebElement> links = $("#TableListeReunions a", with("href").startsWith("Reunion.php5")).now();
 
         for (int i=0; i<links.size(); i++) {
             FluentWebElement link = links.get(i);
-            link.click();
-            List<Regroupement> regroupements = reunionPage.getRegroupements();
-            if (regroupements.size() > 0) {
-                return;
+            if (link.attribute("title") != null && link.attribute("title").contains("Visualiser")) {
+                link.click();
+                List<Regroupement> regroupements = reunionPage.getRegroupements();
+                if (regroupements.size() > 0) {
+                    return;
+                }
+                getDriver().navigate().back();
+                links = $("#TableListeReunions a", with("href").startsWith("Reunion.php5")).now();
+                //TODO: Corriger le StaleElementReferenceException dans FluentLenium pour éviter de rechercher à nouveau
             }
-            getDriver().navigate().back();
-            links = $("#TableListeReunions a", with("href").startsWith("Reunion.php5"));
-            //TODO: Corriger le StaleElementReferenceException dans FluentLenium pour éviter de rechercher à nouveau
         }
 
         throw new NoSuchElementException("Impossible de trouver une réunion effective.");
